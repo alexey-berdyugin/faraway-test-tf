@@ -16,7 +16,7 @@ variable "cluster_name" {
 
 variable "cluster_version" {
   type        = string
-  default     = "1.30"
+  default     = "1.34"
   description = "Kubernetes version for the EKS cluster"
 }
 
@@ -33,6 +33,7 @@ variable "subnet_ids" {
 variable "project_name" {
   type        = string
   description = "Name of the project"
+  default     = "Faraway"
 }
 
 variable "environment" {
@@ -49,4 +50,9 @@ variable "additional_tags" {
 variable "enable_karpenter" {
   type    = bool
   default = true
+}
+
+variable "alb_namespace" {
+  type    = string
+  default = "kube-system"
 }

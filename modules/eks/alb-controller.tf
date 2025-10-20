@@ -1,7 +1,7 @@
 # Helm namespace
 resource "kubernetes_namespace" "alb_controller" {
   metadata {
-    name = var.namespace
+    name = var.alb_namespace
   }
 }
 
@@ -103,9 +103,9 @@ resource "aws_iam_role" "alb_controller" {
 }
 
 resource "aws_iam_role_policy" "alb_controller_policy" {
-  name       = "alb-controller-policy"
-  role       = aws_iam_role.alb_controller.id
-  policy_arn = data.aws_iam_policy_document.alb_controller.json
+  name   = "alb-controller-policy"
+  role   = aws_iam_role.alb_controller.id
+  policy = data.aws_iam_policy_document.alb_controller.json
 }
 
 # ALB Ingress Controller Helm chart
@@ -129,10 +129,12 @@ resource "helm_release" "aws_load_balancer_controller" {
     })
   ]
 
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.alb_controller.arn
-  }
+  set = [
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = aws_iam_role.alb_controller.arn
+    }
+  ]
 
   depends_on = [kubernetes_namespace.alb_controller]
 }

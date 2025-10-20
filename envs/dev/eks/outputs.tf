@@ -14,12 +14,12 @@ output "cluster_security_group_id" {
 }
 
 output "karpenter_iam_role_arn" {
-  value       = module.karpenter.iam_role_arn
+  value       = module.eks.karpenter_iam_role_arn
   description = "IAM role ARN created for Karpenter"
 }
 
 output "node_iam_role_arn" {
-  value       = module.karpenter.node_iam_role_arn
+  value       = module.eks.node_iam_role_arn
   description = "IAM role ARN created for Karpenter"
 }
 
