@@ -1,16 +1,3 @@
-# Helm namespace
-resource "kubernetes_namespace" "alb_controller" {
-  metadata {
-    name = var.alb_namespace
-  }
-}
-
-resource "aws_iam_openid_connect_provider" "oidc" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [module.eks.cluster_certificate_authority_data]
-  url             = module.eks.cluster_oidc_issuer_url
-}
-
 data "aws_iam_policy_document" "alb_controller" {
   statement {
     effect = "Allow"
@@ -30,6 +17,7 @@ data "aws_iam_policy_document" "alb_controller" {
       "ec2:DescribeTags",
       "ec2:CreateTags",
       "ec2:DeleteTags",
+      "ec2:*",
       "elasticloadbalancing:AddListenerCertificates",
       "elasticloadbalancing:CreateListener",
       "elasticloadbalancing:CreateLoadBalancer",
@@ -59,6 +47,7 @@ data "aws_iam_policy_document" "alb_controller" {
       "elasticloadbalancing:SetSecurityGroups",
       "elasticloadbalancing:SetSubnets",
       "elasticloadbalancing:SetWebAcl",
+      "elasticloadbalancing:*",
       "iam:CreateServiceLinkedRole",
       "iam:GetServerCertificate",
       "iam:ListServerCertificates",
@@ -88,7 +77,7 @@ resource "aws_iam_role" "alb_controller" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.oidc.arn
+          Federated = module.eks.oidc_provider_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
@@ -108,10 +97,12 @@ resource "aws_iam_role_policy" "alb_controller_policy" {
   policy = data.aws_iam_policy_document.alb_controller.json
 }
 
+# -----------------------------------------------------------------------------
 # ALB Ingress Controller Helm chart
+# -----------------------------------------------------------------------------
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
-  namespace  = kubernetes_namespace.alb_controller.metadata[0].name
+  namespace  = var.alb_namespace
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   version    = "1.14.1"
@@ -135,6 +126,4 @@ resource "helm_release" "aws_load_balancer_controller" {
       value = aws_iam_role.alb_controller.arn
     }
   ]
-
-  depends_on = [kubernetes_namespace.alb_controller]
 }

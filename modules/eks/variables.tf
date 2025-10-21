@@ -56,3 +56,25 @@ variable "alb_namespace" {
   type    = string
   default = "kube-system"
 }
+
+variable "allowed_users" {
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = [{
+    groups   = ["system:masters"]
+    userarn  = "arn:aws:iam::384840310136:user/aberdyugin"
+    username = "alex"
+  }]
+}
+
+variable "allowed_roles" {
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
