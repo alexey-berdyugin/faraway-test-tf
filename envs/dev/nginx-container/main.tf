@@ -18,7 +18,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  region  = "us-west-2"
   profile = "private"
 }
 
@@ -26,7 +26,7 @@ data "terraform_remote_state" "eks" {
   backend = "s3"
 
   config = {
-    bucket = "berdyugin-faraway-test-tf-state"
+    bucket = "berdyugin-faraway-test-terraform-state"
     key    = "envs/dev/eks/terraform.tfstate"
     region = "us-east-1"
   }
@@ -47,7 +47,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = data.aws_eks_cluster.cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
     token                  = data.aws_eks_cluster_auth.cluster.token
@@ -55,12 +55,9 @@ provider "helm" {
 }
 
 resource "helm_release" "nginx" {
-  name       = "test-nginx-app"
-  repository = "https://github.com/alexey-berdyugin/faraway-test-helm-chart"
-  chart      = "test-nginx-app"
-  version    = "0.1.0"
+  name    = "test-nginx-app"
+  chart   = "../../../helm-charts/test-nginx-app"
+  version = "0.1.0"
 
   namespace = "default"
-
-  values = []
 }
